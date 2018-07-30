@@ -176,21 +176,21 @@ export
         let msgType = response.header.msg_type;
         switch ( msgType ) {
             case "execute_result":
-                let payload = response.content as nbformat.IExecuteResult;
-                let content: string = <string>payload.data["text/plain"];
-                content = content.replace( /^'|'$/g, '' ).replace( /\\"/g, "\"" ).replace( /\\'/g, "\'" );
+                let content = response.content as nbformat.IExecuteResult;
+                let inspectionResponse: string = <string>content.data["text/plain"];
+                inspectionResponse = inspectionResponse.replace( /^'|'$/g, '' ).replace( /\\"/g, "\"" ).replace( /\\'/g, "\'" );
 
-                let update: IVariableInspector.IVariable[];
-                update = <IVariableInspector.IVariable[]>JSON.parse( content );
+                let payload: IVariableInspector.IVariable[];
+                payload = <IVariableInspector.IVariable[]>JSON.parse( inspectionResponse );
 
-                let title: IVariableInspector.IVariableTitle;
-                title = {
-                    contextName: "",
+                let info: IVariableInspector.IVariableKernelInfo;
+                info = {
+                    context: "",
                     kernelName : this._connector.kernelname || "",
                     languageName : this._connector.kerneltype || ""
                 };
 
-                this._inspected.emit( {title: title, payload: update} );
+                this._inspected.emit( {info: info, payload: payload} );
                 break;
             default:
                 break;
@@ -266,13 +266,13 @@ export
         }
        
         public performInspection(): void{
-            let title: IVariableInspector.IVariableTitle;
-            title = {
-                contextName: ". <b>Language currently not supported.</b> ",
+            let kernelInfo: IVariableInspector.IVariableKernelInfo;
+            kernelInfo = {
+                context: ". <b>Language currently not supported.</b> ",
                 kernelName : this._connector.kernelname || "",
                 languageName : this._connector.kerneltype || ""
             };
-            this._inspected.emit( <IVariableInspector.IVariableInspectorUpdate>{title : title, payload : []});
+            this._inspected.emit( <IVariableInspector.IVariableInspectorUpdate>{info : kernelInfo, payload : []});
         }
         
         public performMatrixInspection(varName : string, maxRows : number): Promise<DataModel>{

@@ -7,19 +7,23 @@ import {
 } from '@phosphor/coreutils';
 
 import {
-     DockLayout, Widget,
+     DockLayout, Panel, Widget
 } from '@phosphor/widgets';
 
 import {
     DataGrid, DataModel
 } from "@phosphor/datagrid";
 
+import {
+    MainAreaWidget
+} from "@jupyterlab/apputils";
+
 import '../style/index.css';
 
-const TITLE_CLASS = "jp-VarInspector-title";
 const PANEL_CLASS = "jp-VarInspector";
 const TABLE_CLASS = "jp-VarInspector-table";
 const TABLE_BODY_CLASS = "jp-VarInspector-content";
+const TOOLBAR_BUTTON_CLASS = "jp-Toolbar-kernelName";
 
 /**
  * The inspector panel token.
@@ -52,9 +56,16 @@ namespace IVariableInspector {
 
     export
         interface IVariableInspectorUpdate {
-        title: IVariableTitle;
+        info: IVariableKernelInfo;
         payload: Array<IVariable>;
     } 
+    
+    export
+        interface IVariableKernelInfo {
+        kernelName?: string;
+        languageName?: string;
+        context?: string; //Context currently reserved for special information.
+    }
 
     export
         interface IVariable {
@@ -64,13 +75,7 @@ namespace IVariableInspector {
         varContent: string;
         varType: string;
         isMatrix: boolean;
-    }
-    export
-        interface IVariableTitle {
-        kernelName?: string;
-        languageName?: string;
-        contextName?: string; //Context currently reserved for special information.
-        }
+    }  
 }
 
 
@@ -78,22 +83,21 @@ namespace IVariableInspector {
  * A panel that renders the variables
  */
 export
-    class VariableInspectorPanel extends Widget implements IVariableInspector {
+    class VariableInspectorPanel extends MainAreaWidget implements IVariableInspector {
 
     private _source: IVariableInspector.IInspectable | null = null;
     private _table: HTMLTableElement;
-    private _title: HTMLElement;
+    private _kernelInfoWidget : Private.ToolbarKernelInfo;
 
 
     constructor() {
-        super();
-        this.addClass( PANEL_CLASS );
-        this._title = Private.createTitle();
-        this._title.className = TITLE_CLASS;
+        super({content: (new Panel( ))});
+        this.content.addClass( PANEL_CLASS );        
         this._table = Private.createTable();
         this._table.className = TABLE_CLASS;
-        this.node.appendChild( this._title as HTMLElement );
-        this.node.appendChild( this._table as HTMLElement );
+        this.content.node.appendChild( this._table as HTMLElement );
+        this._kernelInfoWidget = new Private.ToolbarKernelInfo();
+        this.toolbar.addItem(name, this._kernelInfoWidget);
     }
 
     get source(): IVariableInspector.IInspectable | null {
@@ -133,10 +137,10 @@ export
 
     protected onInspectorUpdate( sender: any, allArgs: IVariableInspector.IVariableInspectorUpdate): void {
 
-        let title = allArgs.title;
+        let kernelInfo = allArgs.info;
         let args = allArgs.payload;
 
-        this._title.innerHTML = "    Inspecting " + title.languageName + "-kernel '"+title.kernelName + "' "+title.contextName;
+        this._kernelInfoWidget.content = kernelInfo;
 
         //Render new variable state
         let row: HTMLTableRowElement;
@@ -190,35 +194,38 @@ export
         lout.addWidget( datagrid , {mode: "split-right"});
         //todo activate/focus matrix widget
     }
-
 }
-
 
 namespace Private {
 
-
     export
         function createTable(): HTMLTableElement {
-        let table = document.createElement( "table" );
-        table.createTHead();
-        let hrow = <HTMLTableRowElement>table.tHead.insertRow( 0 );
-        let cell1 = hrow.insertCell( 0 );
-        cell1.innerHTML = "Name";
-        let cell2 = hrow.insertCell( 1 );
-        cell2.innerHTML = "Type";
-        let cell3 = hrow.insertCell( 2 );
-        cell3.innerHTML = "Size";
-        let cell4 = hrow.insertCell( 3 );
-        cell4.innerHTML = "Shape";
-        let cell5 = hrow.insertCell( 4 );
-        cell5.innerHTML = "Content";
-        return table;
-    }
-
-    export
-        function createTitle(header="") {
-        let title = document.createElement( "p" );
-        title.innerHTML = header;
-        return title;
-    }
+            const table = document.createElement( "table" );
+            table.createTHead();
+            const hrow = <HTMLTableRowElement>table.tHead.insertRow( 0 );
+            const cell1 = hrow.insertCell( 0 );
+            cell1.innerHTML = "Name";
+            const cell2 = hrow.insertCell( 1 );
+            cell2.innerHTML = "Type";
+            const cell3 = hrow.insertCell( 2 );
+            cell3.innerHTML = "Size";
+            const cell4 = hrow.insertCell( 3 );
+            cell4.innerHTML = "Shape";
+            const cell5 = hrow.insertCell( 4 );
+            cell5.innerHTML = "Content";
+            return table;
+    }  
+    
+    export class ToolbarKernelInfo extends Widget{        
+        constructor() {
+            super();
+            this.addClass(TOOLBAR_BUTTON_CLASS);
+            this.node.textContent = "Loading...";
+         }
+        
+        set content(info : IVariableInspector.IVariableKernelInfo){
+            this.node.innerHTML = "Inspecting " + info.languageName + "-kernel '" + info.kernelName + "' " + info.context;
+            
+        }
+    }    
 }
