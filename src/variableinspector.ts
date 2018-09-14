@@ -140,7 +140,9 @@ export
         let kernelInfo = allArgs.info;
         let args = allArgs.payload;
 
+
         this._kernelInfoWidget.content = kernelInfo;
+       
 
         //Render new variable state
         let row: HTMLTableRowElement;
@@ -156,7 +158,6 @@ export
                         this._showMatrix( model, name )
                     } );
                 }
-                row.bgColor = "#e5e5e5";
             }
             let cell = row.insertCell( 0 );
             cell.innerHTML = args[index].varName;
@@ -224,8 +225,12 @@ namespace Private {
          }
         
         set content(info : IVariableInspector.IVariableKernelInfo){
-            this.node.innerHTML = "Inspecting " + info.languageName + "-kernel '" + info.kernelName + "' " + info.context;
             
+            if (info.context){
+                this.node.innerHTML = info.context;
+            }else{
+                this.node.innerHTML = "Inspecting " + info.languageName + "-kernel '" + info.kernelName;
+            }            
         }
     }    
 }
