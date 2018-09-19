@@ -7,7 +7,7 @@ import {
 } from '@phosphor/coreutils';
 
 import {
-     DockLayout, Panel, Widget
+     DockLayout,  Widget, Panel
 } from '@phosphor/widgets';
 
 import {
@@ -83,15 +83,14 @@ namespace IVariableInspector {
  * A panel that renders the variables
  */
 export
-    class VariableInspectorPanel extends MainAreaWidget implements IVariableInspector {
+    class VariableInspectorPanel extends MainAreaWidget<Widget> implements IVariableInspector {
 
     private _source: IVariableInspector.IInspectable | null = null;
     private _table: HTMLTableElement;
     private _kernelInfoWidget : Private.ToolbarKernelInfo;
 
-
     constructor() {
-        super({content: (new Panel( ))});
+        super({content : new Panel()});
         this.content.addClass( PANEL_CLASS );        
         this._table = Private.createTable();
         this._table.className = TABLE_CLASS;
@@ -195,6 +194,7 @@ export
         lout.addWidget( datagrid , {mode: "split-right"});
         //todo activate/focus matrix widget
     }
+    
 }
 
 namespace Private {
