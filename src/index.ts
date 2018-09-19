@@ -35,8 +35,6 @@ import {
 } from '@jupyterlab/notebook';
 
 
-
-
 namespace CommandIDs {
     export
     const open = "variableinspector:open";
@@ -97,7 +95,7 @@ const variableinspector: JupyterLabPlugin<IVariableInspectorManager> = {
                         manager.panel = newPanel();
                     }
                     if ( !manager.panel.isAttached ) {
-                        app.shell.addToMainArea( manager.panel );
+                        app.shell.addToMainArea( manager.panel, {mode: "split-right"} );
                     }
                     if ( manager.source ) {
                         manager.source.performInspection();
